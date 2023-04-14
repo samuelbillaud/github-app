@@ -13,6 +13,8 @@ This repository uses :
 - [ESLint](https://eslint.org/) for code linting.
 - [Prettier](https://prettier.io) for code formatting.
 - [VanillaExtract](https://vanilla-extract.style/) for style
+- [Vitest](https://vitest.dev/) for unit tests
+- [TestingLibrary](https://testing-library.com/) for ui tests
 
 ### Usage
 
