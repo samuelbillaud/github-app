@@ -1,4 +1,4 @@
-import { Endpoints } from "@octokit/types";
+import { Endpoints } from '@octokit/types';
 
 import { request } from './request';
 

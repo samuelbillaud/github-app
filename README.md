@@ -17,16 +17,19 @@ This repository uses :
 ### Usage
 
 First, you must install dependencies, so run :
+
 ```
 pnpm install
 ```
 
 Second, you must create .env file which contain an access token :
+
 ```
 ACCESS_TOKEN=your_access_token_here
 ```
 
 Finally, you can run project on [localhost](http://localhost:3000/) with :
+
 ```
 pnpm dev
 ```
