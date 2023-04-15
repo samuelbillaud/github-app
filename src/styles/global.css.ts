@@ -16,7 +16,7 @@ globalStyle(`*`, {
 /*
   3. Allow percentage-based heights in the application
 */
-globalStyle(`html, body, #root`, {
+globalStyle(`html, body`, {
   height: '100%',
 });
 /*

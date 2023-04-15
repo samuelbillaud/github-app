@@ -1,11 +1,18 @@
 import { render, screen } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import App from './App';
 
-describe('App', () => {
-  it('renders App', () => {
-    render(<App />);
+const queryClient = new QueryClient();
 
-    expect(screen.getByText(/count/i)).toBeInTheDocument();
+describe('App', () => {
+  it('renders App', async () => {
+    render(
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>
+    );
+
+    expect(screen.getByText(/Loading/i)).toBeInTheDocument();
   });
 });

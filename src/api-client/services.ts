@@ -1,23 +1,16 @@
-import { Endpoints } from '@octokit/types';
-
 import { request } from './request';
-
-export type GetPullRequests = Endpoints['GET /repos/{owner}/{repo}/pulls']['response']['data'];
+import { GetPullRequest, GetPullRequests } from '../types';
 
 export class GithubService {
   static getPullRequests(owner: string, repo: string) {
-    const url = `/repos/${owner}/${repo}/pulls`;
-
     return request<GetPullRequests>({
-      url,
+      url: `/repos/${owner}/${repo}/pulls`,
     });
   }
 
   static getPullRequest(owner: string, repo: string, pull_number: number) {
-    const url = `/repos/${owner}/${repo}/pulls/${pull_number}`;
-
-    return request<Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response']['data']>({
-      url,
+    return request<GetPullRequest>({
+      url: `/repos/${owner}/${repo}/pulls/${pull_number}`,
     });
   }
 }
