@@ -2,7 +2,7 @@ import { Octokit } from 'octokit';
 import { RequestMethod } from '@octokit/types';
 
 export const client = new Octokit({
-  auth: import.meta.env.ACCESS_TOKEN,
+  auth: import.meta.env.VITE_ACCESS_TOKEN,
 });
 
 export const request = async <T>({ url, method = 'GET' }: { url: string; method?: RequestMethod }): Promise<T> => {

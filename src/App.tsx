@@ -1,12 +1,47 @@
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, FC, ReactNode, useState } from 'react';
 
-import { useGetColumns } from './hooks';
-
+import { Columns, NextPRToReview } from './components';
 import { container } from './App.css';
+import { useQuery } from '@tanstack/react-query';
+import { getOwnerAndRepo, isGithubUrlFn } from './utils';
+import { GithubService } from './api-client';
+import { GetRepository } from './types';
+
+type PullRequestsLayoutProps = {
+  url: string;
+  children: ReactNode;
+};
+
+const PullRequestsLayout: FC<PullRequestsLayoutProps> = ({ url, children }) => {
+  const isGithubUrl = isGithubUrlFn(url);
+  const [owner, repo] = getOwnerAndRepo(url);
+
+  const { isLoading, isError } = useQuery<GetRepository, Error>(
+    ['getRepository', url],
+    () => GithubService.getRepository(owner, repo),
+    {
+      enabled: isGithubUrl,
+      retry: false,
+    }
+  );
+
+  if (!isGithubUrl) {
+    return <div>This is the wrong url format</div>;
+  }
+
+  if (isError) {
+    return <div>{"Repository doesn't exist"}</div>;
+  }
+
+  if (isLoading) {
+    return <div>Loading</div>;
+  }
+
+  return <div>{children}</div>;
+};
 
 function App() {
-  const [url, setUrl] = useState('https://github.com/python/cpython');
-  const { columns, isLoading, error } = useGetColumns(url);
+  const [url, setUrl] = useState('https://github.com/facebook/react');
 
   const onBlur = (event: ChangeEvent<HTMLInputElement>) => {
     const {
@@ -16,36 +51,17 @@ function App() {
     setUrl(value);
   };
 
-  if (isLoading) {
-    return <div>Loading</div>;
-  }
-
-  if (error) {
-    return <div>{error.message}</div>;
-  }
-
   return (
     <div className={container}>
       <div>Mergic</div>
       <input type="text" onBlur={onBlur} placeholder="Enter repo url" defaultValue={url} />
-      <div>
-        {(Object.values(columns) || []).map(({ id, color, isDefault, name, pullRequests }) => (
-          <div key={id} style={{ border: `2px solid #${color}` }}>
-            <div>{name}</div>
-            <div style={{ border: '1px solid #000', margin: '20px' }}>
-              {pullRequests.map(({ id, title, created_at, html_url, user }) => (
-                <div key={id} style={{ border: '1px solid red', margin: '10px' }}>
-                  <a href={html_url}>
-                    <div>{title}</div>
-                    <div>{created_at}</div>
-                    <div>{user?.login}</div>
-                  </a>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
+
+      <PullRequestsLayout url={url}>
+        <>
+          <NextPRToReview url={url} />
+          <Columns url={url} />
+        </>
+      </PullRequestsLayout>
     </div>
   );
 }
