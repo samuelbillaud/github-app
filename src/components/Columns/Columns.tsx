@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { useGetColumns } from '../../hooks';
 
+import { Spinner } from '../Spinner';
 import { container, pullRequest, column, pullRequestHeader, pullRequestName } from './Columns.css';
 
 type ColumnsProps = {
@@ -11,7 +12,7 @@ export const Columns: FC<ColumnsProps> = ({ url }) => {
   const { columns, isLoading, error } = useGetColumns(url);
 
   if (isLoading) {
-    return <div>Loading</div>;
+    return <Spinner />;
   }
 
   if (error) {

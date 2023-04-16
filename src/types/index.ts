@@ -13,3 +13,11 @@ export type Columns = {
     pullRequests: GetPullRequests;
   };
 };
+
+export type PullRequestWithScore = {
+  title: string;
+  htmlURL: string;
+  createdAt: string;
+  login?: string;
+  score: number;
+};

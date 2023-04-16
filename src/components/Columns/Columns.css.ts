@@ -2,7 +2,7 @@ import { style, globalStyle } from '@vanilla-extract/css';
 
 export const container = style({
   display: 'flex',
-
+  width: '100%',
   gap: '20px',
   overflowY: 'hidden',
 });

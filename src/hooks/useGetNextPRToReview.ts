@@ -1,97 +1,74 @@
-import { useEffect, useState } from 'react';
-import { getOwnerAndRepo, isGithubUrlFn } from '../utils';
-import { useGetPullRequests } from './useGetPullRequests';
-import { GithubService } from '../api-client';
+import { useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
-const getScore = (pullRequest) => {
-  const { title, html_url, created_at, user, labels, mergeable, draft, additions, deletions } = pullRequest || {};
-  let score = 0;
+import { GithubService } from '../api-client';
+import { getOwnerAndRepo, isGithubUrlFn, getNextPRToReview } from '../utils';
 
-  const hasUrgentLabel = (labels || []).some(({ name }) => name === 'URGENT');
+import { useGetPullRequests } from './useGetPullRequests';
+import { GetPullRequest, GetPullRequests, PullRequestWithScore } from '../types';
 
-  const linesChanges = additions + deletions;
-
-  if (hasUrgentLabel) {
-    score += 10;
-  }
-
-  // By name
-
-  if (!mergeable) {
-    score -= 2;
-  }
-  if (linesChanges < 100) {
-    score += 1;
-  }
-  if (draft) {
-    score -= 5;
-  }
-
-  return score;
-};
-
-export const useGetNextPRToReview = (url: string) => {
-  const [pullRequestQueries, setPullRequestQueries] = useState<any>([]);
-  const { pullRequests } = useGetPullRequests(url);
-
-  const [owner, repo] = getOwnerAndRepo(url);
-  const isGithubUrl = isGithubUrlFn(url);
-
+const useGetPullRequestsDetails = (pullRequests: GetPullRequests, url: string) => {
   const queryClient = useQueryClient();
 
-  const getPullRequests = async () => {
-    const result = Promise.all(
-      (pullRequests || []).map(async ({ number }) => {
-        const pull = await queryClient.fetchQuery({
-          queryKey: ['getPullRequest', number],
-          queryFn: () => GithubService.getPullRequest(owner, repo, number),
-        });
+  const [owner, repo] = getOwnerAndRepo(url);
 
-        return pull;
-      })
-    );
-
+  return useCallback(async () => {
     try {
-      const pullRequestQueries = await result;
+      const pullRequestQueries = await Promise.all(
+        pullRequests.map(async ({ number }) => {
+          const pull = await queryClient.fetchQuery<GetPullRequest>({
+            queryKey: ['getPullRequest', number],
+            queryFn: () => GithubService.getPullRequest(owner, repo, number),
+          });
+          return pull;
+        })
+      );
 
       return pullRequestQueries;
     } catch (error) {
       console.error(error);
-
       return [];
     }
-  };
+  }, [pullRequests, queryClient, owner, repo]);
+};
+
+export const useGetNextPRToReview = (
+  url: string
+): { isLoading: boolean; nextPRToReview: PullRequestWithScore | null } => {
+  const [nextPRToReview, setNextPRToReview] = useState<PullRequestWithScore | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const { pullRequests } = useGetPullRequests(url);
+  const getPullRequestsDetails = useGetPullRequestsDetails(pullRequests || [], url);
+
+  const isGithubUrl = isGithubUrlFn(url);
 
   useEffect(() => {
     const fetchData = async () => {
-      const pullRequestQueries = await getPullRequests();
+      if (!isGithubUrl) {
+        return;
+      }
 
-      setPullRequestQueries(pullRequestQueries);
+      setIsLoading(true);
+
+      try {
+        const pullRequestQueries = await getPullRequestsDetails();
+
+        setNextPRToReview(getNextPRToReview(pullRequestQueries));
+      } catch (error) {
+        console.error(error);
+
+        setNextPRToReview(null);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    isGithubUrl && fetchData();
-  }, [url, pullRequests]);
-
-  const result = pullRequestQueries.map((data) => {
-    const { title, html_url: htmlURL, created_at: createdAt, user } = data || {};
-
-    return {
-      title,
-      htmlURL,
-      createdAt,
-      login: user?.login,
-      score: getScore(data),
-    };
-  });
-
-  const nextPRToReview = result.reduce(
-    (previous, current) => (previous.score > current.score ? previous : current),
-    result[0]
-  );
+    fetchData();
+  }, [pullRequests, isGithubUrl]);
 
   return {
-    isLoading: !nextPRToReview,
+    isLoading,
     nextPRToReview,
   };
 };

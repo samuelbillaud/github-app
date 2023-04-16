@@ -1,5 +1,8 @@
 import { FC } from 'react';
-import { useGetNextPRToReview } from '../../hooks/useGetNextPRToReview';
+import { useGetNextPRToReview } from '../../hooks';
+import { Spinner } from '../Spinner';
+
+import { nextPRToReviewContainer } from './NextPRToReview.css';
 
 type NextPRToReviewProps = {
   url: string;
@@ -8,5 +11,11 @@ type NextPRToReviewProps = {
 export const NextPRToReview: FC<NextPRToReviewProps> = ({ url }) => {
   const { nextPRToReview, isLoading } = useGetNextPRToReview(url);
 
-  return isLoading ? <div>Loading</div> : <div>Next PR to Review : {nextPRToReview.title}</div>;
+  if (isLoading) {
+    return <Spinner />;
+  }
+
+  return nextPRToReview ? (
+    <div className={nextPRToReviewContainer}>Next PR to Review : {nextPRToReview.title}</div>
+  ) : null;
 };
