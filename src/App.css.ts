@@ -7,4 +7,5 @@ export const container = style({
   justifyContent: 'center',
 
   height: '100%',
+  padding: '50px',
 });

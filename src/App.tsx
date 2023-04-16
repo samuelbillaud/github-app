@@ -37,7 +37,7 @@ const PullRequestsLayout: FC<PullRequestsLayoutProps> = ({ url, children }) => {
     return <div>Loading</div>;
   }
 
-  return <div>{children}</div>;
+  return <div style={{ width: '100%' }}>{children}</div>;
 };
 
 function App() {
